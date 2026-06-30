@@ -1,18 +1,26 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+'use client';
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import AuthForm from "@/components/auth-form";
 
-export const metadata = {
-  title: "Sign Up - EduGenie",
-  description: "Create your EduGenie account",
-};
+export default function SignUpPage() {
+  const router = useRouter();
 
-export default async function SignUpPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (session?.user) {
-    redirect("/");
-  }
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await authClient.getSession();
+        if (data?.user) {
+          router.push("/");
+        }
+      } catch (error) {
+        // User not signed up, continue to signup page
+      }
+    };
+    checkSession();
+  }, [router]);
 
   return <AuthForm mode="sign-up" />;
 }

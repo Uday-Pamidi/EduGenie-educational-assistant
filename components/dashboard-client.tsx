@@ -23,7 +23,7 @@ interface DashboardProps {
   };
 }
 
-export default function Dashboard({ user }: DashboardProps) {
+export function DashboardClient({ user }: DashboardProps) {
   const router = useRouter();
 
   const handleLogout = async () => {

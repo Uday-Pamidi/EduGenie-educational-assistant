@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import Dashboard from "@/components/dashboard";
+import { DashboardClient } from "@/components/dashboard-client";
 
 export const metadata = {
   title: "Dashboard - EduGenie",
@@ -15,5 +15,5 @@ export default async function Home() {
     redirect("/sign-in");
   }
 
-  return <Dashboard user={session.user} />;
+  return <DashboardClient user={session.user} />;
 }

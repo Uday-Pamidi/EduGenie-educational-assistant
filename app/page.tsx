@@ -1,29 +1,49 @@
 'use client';
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
 export default function Home() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    let isMounted = true;
+
     const getSession = async () => {
       try {
         const { data } = await authClient.getSession();
+        
+        if (!isMounted) return;
+        
         if (!data?.user) {
-          redirect("/sign-in");
+          setShouldRedirect(true);
+          return;
         }
         setSession(data);
-      } catch (error) {
-        redirect("/sign-in");
-      } finally {
         setLoading(false);
+      } catch (error) {
+        if (isMounted) {
+          setShouldRedirect(true);
+        }
       }
     };
+    
     getSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/sign-in");
+    }
+  }, [shouldRedirect, router]);
 
   if (loading) {
     return (

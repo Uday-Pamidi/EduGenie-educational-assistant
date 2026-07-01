@@ -32,14 +32,17 @@ export default function AuthForm({ mode }: AuthFormProps) {
           name,
         });
       } else {
-        await authClient.signIn.email({
-          email,
-          password,
-        });
-      }
-
+      await authClient.signIn.email({
+        email,
+        password,
+      });
+    }
+    
+    // Clear Next.js server cache first, then redirect safely
+    router.refresh();
+    setTimeout(() => {
       router.push("/");
-      router.refresh();
+    }, 100);
     } catch (err: any) {
       setError(err.message || "Authentication failed");
     } finally {

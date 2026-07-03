@@ -1,7 +1,7 @@
 "use server";
 
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 async function getUserId() {
   // Allow guest/anonymous access - generate a guest ID
@@ -20,15 +20,18 @@ Question: ${question}
 Provide a comprehensive but concise answer with examples if relevant.`;
 
   try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1000,
     });
     return text;
   } catch (error: any) {
-    console.error("[v0] Answer generation error:", error.message);
+    console.error("[v0] Answer error:", error?.message || error);
     // Fallback response if API fails
     return `I encountered an issue generating a detailed answer. Please ensure your API is properly configured and try again.`;
   }
@@ -50,15 +53,18 @@ Structure your explanation with:
 4. Common misconceptions`;
 
   try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1200,
     });
     return text;
   } catch (error: any) {
-    console.error("[v0] Explanation generation error:", error.message);
+    console.error("[v0] Explanation error:", error?.message || error);
     // Fallback response if API fails
     return `I encountered an issue generating a detailed explanation. Please ensure your API is properly configured and try again.`;
   }
@@ -85,8 +91,11 @@ Return ONLY a valid JSON object with this structure:
 Ensure valid JSON with proper escaping.`;
 
   try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1500,
@@ -101,7 +110,7 @@ Ensure valid JSON with proper escaping.`;
       totalQuestions: quizData.questions?.length || 5,
     };
   } catch (error: any) {
-    console.error("[v0] Quiz generation error:", error.message);
+    console.error("[v0] Quiz error:", error?.message || error);
     // Return empty quiz if API fails
     return {
       topic,
@@ -127,15 +136,18 @@ Provide a concise summary with:
 3. Important terms and definitions`;
 
   try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1000,
     });
     return text;
   } catch (error: any) {
-    console.error("[v0] Summarization error:", error.message);
+    console.error("[v0] Summarization error:", error?.message || error);
     // Fallback response if API fails
     return `I encountered an issue summarizing the content. Please ensure your API is properly configured and try again.`;
   }
@@ -163,8 +175,11 @@ Return ONLY a valid JSON object with this structure:
 Ensure valid JSON with proper escaping.`;
 
   try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 2000,
@@ -179,7 +194,7 @@ Ensure valid JSON with proper escaping.`;
       summary: pathData.summary || "Learning path for " + subject,
     };
   } catch (error: any) {
-    console.error("[v0] Learning path generation error:", error.message);
+    console.error("[v0] Learning path error:", error?.message || error);
     // Return empty learning path if API fails
     return {
       subject,

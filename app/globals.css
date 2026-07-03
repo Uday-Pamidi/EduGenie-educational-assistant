@@ -167,23 +167,38 @@
     @apply font-sans;
   }
   
-  /* Input field styling */
+  /* Input field styling with enhanced text visibility */
   input,
   textarea,
   select {
-    @apply bg-white text-foreground border-2 border-gray-300 placeholder-gray-500;
+    @apply bg-white text-gray-900 border-2 border-gray-400 placeholder-gray-700;
+    color: #111827 !important; /* Very dark text color */
   }
   
   input:focus,
   textarea:focus,
   select:focus {
-    @apply border-blue-500 ring-1 ring-blue-500/20;
+    @apply border-blue-600 ring-2 ring-blue-400/40;
   }
   
-  /* Placeholder text visibility */
+  /* Placeholder text with maximum visibility */
   input::placeholder,
   textarea::placeholder {
-    @apply text-gray-600 opacity-100;
+    color: #374151 !important; /* Dark gray placeholder */
+    opacity: 1;
+  }
+  
+  /* Dark mode input styling */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    @apply bg-gray-900 text-white border-2 border-gray-600 placeholder-gray-400;
+    color: #ffffff !important;
+  }
+  
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #d1d5db !important;
   }
 }
 

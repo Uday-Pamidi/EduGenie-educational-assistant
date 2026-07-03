@@ -5,12 +5,7 @@ import { google } from "@ai-sdk/google";
 
 async function getUserId() {
   // Allow guest/anonymous access - generate a guest ID
-  try {
-    // Optional: Check for session if you implement it later
-    return "guest-" + Math.random().toString(36).substring(7);
-  } catch {
-    return "guest-" + Math.random().toString(36).substring(7);
-  }
+  return "guest-" + Math.random().toString(36).substring(7);
 }
 
 // Question Answering Module
@@ -24,23 +19,19 @@ Question: ${question}
 
 Provide a comprehensive but concise answer with examples if relevant.`;
 
-  let text: string;
   try {
-    const { text: generatedText } = await generateText({
+    const { text } = await generateText({
       model: google("gemini-2.0-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1000,
     });
-    text = generatedText;
+    return text;
   } catch (error: any) {
-    // Fallback to a simpler response if API fails
-    text = `Based on your question about "${question}" in ${topic}:\n\n**Note:** EduGenie is currently running in demo mode. To enable full AI-powered answers, please:\n\n1. Set up a Google Gemini API key\n2. Add it to your environment variables as GOOGLE_GENERATIVE_AI_API_KEY\n3. Restart the application\n\nWith proper API configuration, EduGenie will provide comprehensive, expert-level educational answers to support your learning journey.`;
+    console.error("[v0] Answer generation error:", error.message);
+    // Fallback response if API fails
+    return `I encountered an issue generating a detailed answer. Please ensure your API is properly configured and try again.`;
   }
-
-  // Note: Database saving is disabled for public access mode
-
-  return text;
 }
 
 // Explanation Module
@@ -58,21 +49,19 @@ Structure your explanation with:
 3. Real-world examples
 4. Common misconceptions`;
 
-  let text: string;
   try {
-    const response = await generateText({
+    const { text } = await generateText({
       model: google("gemini-2.0-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1200,
     });
-    text = response.text;
+    return text;
   } catch (error: any) {
-    text = `**Understanding "${concept}" in ${topic}**\n\n**Definition:** A placeholder definition of the concept.\n\n**Key Points:**\n- First key point about the concept\n- Second key point about the concept\n- Third key point about the concept\n\n**Real-World Examples:**\nExamples would be provided here when the AI API is configured.\n\n**Common Misconceptions:**\nCommon misconceptions would be addressed here when the AI API is configured.\n\n*To enable full AI-powered explanations, please configure your Google Gemini API key in the environment variables.*`;
+    console.error("[v0] Explanation generation error:", error.message);
+    // Fallback response if API fails
+    return `I encountered an issue generating a detailed explanation. Please ensure your API is properly configured and try again.`;
   }
-
-  // Database saving disabled for public access mode
-  return text;
 }
 
 // Quiz Generation Module
@@ -95,7 +84,6 @@ Return ONLY a valid JSON object with this structure:
 
 Ensure valid JSON with proper escaping.`;
 
-  let quizData: any;
   try {
     const { text } = await generateText({
       model: google("gemini-2.0-flash"),
@@ -105,34 +93,24 @@ Ensure valid JSON with proper escaping.`;
     });
 
     // Parse the response
-    quizData = JSON.parse(text);
+    const quizData = JSON.parse(text);
+    return {
+      topic,
+      difficulty,
+      questions: quizData.questions || [],
+      totalQuestions: quizData.questions?.length || 5,
+    };
   } catch (error: any) {
-    // Fallback quiz if parsing or API fails
-    quizData = {
-      questions: [
-        {
-          question: "Sample question about " + topic,
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correct: 0,
-          explanation: "This is the correct answer. Configure your Google Gemini API for real questions.",
-        },
-        {
-          question: "What is a key concept in " + topic + "?",
-          options: ["Concept A", "Concept B", "Concept C", "Concept D"],
-          correct: 1,
-          explanation: "Configure your API to get personalized quiz questions.",
-        },
-      ],
+    console.error("[v0] Quiz generation error:", error.message);
+    // Return empty quiz if API fails
+    return {
+      topic,
+      difficulty,
+      questions: [],
+      totalQuestions: 0,
+      error: "Failed to generate quiz. Please try again.",
     };
   }
-
-  // Return quiz data (no database saving in public mode)
-  return {
-    topic,
-    difficulty,
-    questions: quizData.questions || [],
-    totalQuestions: quizData.questions?.length || 2,
-  };
 }
 
 // Summarization Module
@@ -148,20 +126,19 @@ Provide a concise summary with:
 2. Key takeaways
 3. Important terms and definitions`;
 
-  let text: string;
   try {
-    const { text: generatedText } = await generateText({
+    const { text } = await generateText({
       model: google("gemini-2.0-flash"),
       prompt,
       temperature: 0.7,
       maxTokens: 1000,
     });
-    text = generatedText;
+    return text;
   } catch (error: any) {
-    text = `**Summary of Content about ${topic}**\n\n**Main Points:**\n- Key point 1 would appear here\n- Key point 2 would appear here\n- Key point 3 would appear here\n\n**Key Takeaways:**\n- Important takeaway 1\n- Important takeaway 2\n\n**Important Terms:**\n- Term 1: Definition\n- Term 2: Definition\n\n*Configure your Google Gemini API key to enable real-time summarization of educational content.*`;
+    console.error("[v0] Summarization error:", error.message);
+    // Fallback response if API fails
+    return `I encountered an issue summarizing the content. Please ensure your API is properly configured and try again.`;
   }
-
-  return text;
 }
 
 // Learning Path Recommendation Module
@@ -185,7 +162,6 @@ Return ONLY a valid JSON object with this structure:
 
 Ensure valid JSON with proper escaping.`;
 
-  let pathData: any;
   try {
     const { text } = await generateText({
       model: google("gemini-2.0-flash"),
@@ -195,38 +171,22 @@ Ensure valid JSON with proper escaping.`;
     });
 
     // Parse the response
-    pathData = JSON.parse(text);
+    const pathData = JSON.parse(text);
+    return {
+      subject,
+      level,
+      curriculum: pathData.topics || [],
+      summary: pathData.summary || "Learning path for " + subject,
+    };
   } catch (error: any) {
-    pathData = {
-      topics: [
-        {
-          name: "Introduction to " + subject,
-          duration: "2-3 hours",
-          resources: ["Basic tutorials", "Reading materials"],
-          skills: ["Understanding fundamentals"],
-        },
-        {
-          name: "Core Concepts of " + subject,
-          duration: "4-6 hours",
-          resources: ["Video lectures", "Practice problems"],
-          skills: ["Applying core concepts"],
-        },
-        {
-          name: "Advanced Topics in " + subject,
-          duration: "6-10 hours",
-          resources: ["Case studies", "Projects"],
-          skills: ["Mastering advanced topics"],
-        },
-      ],
-      summary: "A " + level + "-friendly learning path to learn " + subject + ". Configure your API for personalized recommendations.",
+    console.error("[v0] Learning path generation error:", error.message);
+    // Return empty learning path if API fails
+    return {
+      subject,
+      level,
+      curriculum: [],
+      summary: "Failed to generate learning path. Please try again.",
+      error: "API generation failed",
     };
   }
-
-  // Return learning path (no database saving in public mode)
-  return {
-    subject,
-    level,
-    curriculum: pathData.topics || [],
-    summary: pathData.summary || "Learning path for " + subject,
-  };
 }

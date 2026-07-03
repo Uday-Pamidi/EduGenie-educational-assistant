@@ -1,10 +1,11 @@
 'use client';
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
 export default function Home() {
+  const router = useRouter();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,17 +14,18 @@ export default function Home() {
       try {
         const { data } = await authClient.getSession();
         if (!data?.user) {
-          redirect("/sign-in");
+          router.push("/sign-in");
+          return;
         }
         setSession(data);
       } catch (error) {
-        redirect("/sign-in");
+        router.push("/sign-in");
       } finally {
         setLoading(false);
       }
     };
     getSession();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

@@ -38,8 +38,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
         });
       }
 
+      // Wait a bit for session to be established in cookies
+      await new Promise(resolve => setTimeout(resolve, 500));
       router.push("/");
-      router.refresh();
+      // Use reload instead of refresh to ensure session is picked up
+      window.location.href = "/";
     } catch (err: any) {
       setError(err.message || "Authentication failed");
     } finally {

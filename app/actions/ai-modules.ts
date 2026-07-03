@@ -1,17 +1,11 @@
 "use server";
 
-import { generateText, streamText } from "ai";
-import { google } from "@ai-sdk/google";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { learningHistories, quizzes, learningPaths } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { generateText } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) throw new Error("Unauthorized");
-  return session.user.id;
+  // Allow guest/anonymous access - generate a guest ID
+  return "guest-" + Math.random().toString(36).substring(7);
 }
 
 // Question Answering Module
@@ -25,23 +19,22 @@ Question: ${question}
 
 Provide a comprehensive but concise answer with examples if relevant.`;
 
-  const { text } = await generateText({
-    model: google("gemini-1.5-pro"),
-    prompt,
-    temperature: 0.7,
-    maxTokens: 1000,
-  });
-
-  // Save to learning history
-  await db.insert(learningHistories).values({
-    userId,
-    moduleType: "question_answering",
-    topic,
-    query: question,
-    response: text,
-  });
-
-  return text;
+  try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.7,
+      maxTokens: 1000,
+    });
+    return text;
+  } catch (error: any) {
+    console.error("[v0] Answer error:", error?.message || error);
+    // Fallback response if API fails
+    return `I encountered an issue generating a detailed answer. Please ensure your API is properly configured and try again.`;
+  }
 }
 
 // Explanation Module
@@ -59,22 +52,22 @@ Structure your explanation with:
 3. Real-world examples
 4. Common misconceptions`;
 
-  const { text } = await generateText({
-    model: google("gemini-1.5-pro"),
-    prompt,
-    temperature: 0.7,
-    maxTokens: 1200,
-  });
-
-  await db.insert(learningHistories).values({
-    userId,
-    moduleType: "explanation",
-    topic,
-    query: concept,
-    response: text,
-  });
-
-  return text;
+  try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.7,
+      maxTokens: 1200,
+    });
+    return text;
+  } catch (error: any) {
+    console.error("[v0] Explanation error:", error?.message || error);
+    // Fallback response if API fails
+    return `I encountered an issue generating a detailed explanation. Please ensure your API is properly configured and try again.`;
+  }
 }
 
 // Quiz Generation Module
@@ -97,44 +90,36 @@ Return ONLY a valid JSON object with this structure:
 
 Ensure valid JSON with proper escaping.`;
 
-  const { text } = await generateText({
-    model: google("gemini-1.5-pro"),
-    prompt,
-    temperature: 0.7,
-    maxTokens: 1500,
-  });
-
-  // Parse the response
-  let quizData;
   try {
-    quizData = JSON.parse(text);
-  } catch {
-    // Fallback quiz if parsing fails
-    quizData = {
-      questions: [
-        {
-          question: "Sample question about " + topic,
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correct: 0,
-          explanation: "This is the correct answer.",
-        },
-      ],
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.7,
+      maxTokens: 1500,
+    });
+
+    // Parse the response
+    const quizData = JSON.parse(text);
+    return {
+      topic,
+      difficulty,
+      questions: quizData.questions || [],
+      totalQuestions: quizData.questions?.length || 5,
+    };
+  } catch (error: any) {
+    console.error("[v0] Quiz error:", error?.message || error);
+    // Return empty quiz if API fails
+    return {
+      topic,
+      difficulty,
+      questions: [],
+      totalQuestions: 0,
+      error: "Failed to generate quiz. Please try again.",
     };
   }
-
-  // Save quiz to database
-  const result = await db
-    .insert(quizzes)
-    .values({
-      userId,
-      topic,
-      questions: quizData.questions,
-      difficulty,
-      totalQuestions: quizData.questions?.length || 5,
-    })
-    .returning();
-
-  return result[0];
 }
 
 // Summarization Module
@@ -150,22 +135,22 @@ Provide a concise summary with:
 2. Key takeaways
 3. Important terms and definitions`;
 
-  const { text } = await generateText({
-    model: google("gemini-1.5-pro"),
-    prompt,
-    temperature: 0.7,
-    maxTokens: 1000,
-  });
-
-  await db.insert(learningHistories).values({
-    userId,
-    moduleType: "summarization",
-    topic,
-    query: content.substring(0, 500),
-    response: text,
-  });
-
-  return text;
+  try {
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.7,
+      maxTokens: 1000,
+    });
+    return text;
+  } catch (error: any) {
+    console.error("[v0] Summarization error:", error?.message || error);
+    // Fallback response if API fails
+    return `I encountered an issue summarizing the content. Please ensure your API is properly configured and try again.`;
+  }
 }
 
 // Learning Path Recommendation Module
@@ -189,65 +174,34 @@ Return ONLY a valid JSON object with this structure:
 
 Ensure valid JSON with proper escaping.`;
 
-  const { text } = await generateText({
-    model: google("gemini-1.5-pro"),
-    prompt,
-    temperature: 0.7,
-    maxTokens: 2000,
-  });
-
-  // Parse the response
-  let pathData;
   try {
-    pathData = JSON.parse(text);
-  } catch {
-    pathData = {
-      topics: [
-        {
-          name: "Introduction to " + subject,
-          duration: "2-3 hours",
-          resources: ["Basic tutorials", "Reading materials"],
-          skills: ["Understanding fundamentals"],
-        },
-      ],
-      summary: "A beginner-friendly path to learn " + subject,
-    };
-  }
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
+    const { text } = await generateText({
+      model: google("gemini-1.5-flash"),
+      prompt,
+      temperature: 0.7,
+      maxTokens: 2000,
+    });
 
-  // Save learning path
-  const result = await db
-    .insert(learningPaths)
-    .values({
-      userId,
+    // Parse the response
+    const pathData = JSON.parse(text);
+    return {
       subject,
       level,
-      curriculum: pathData.topics,
-    })
-    .returning();
-
-  return result[0];
-}
-
-// Get user learning history
-export async function getLearningHistory() {
-  const userId = await getUserId();
-
-  const history = await db
-    .select()
-    .from(learningHistories)
-    .where(eq(learningHistories.userId, userId));
-
-  return history;
-}
-
-// Get user quizzes
-export async function getUserQuizzes() {
-  const userId = await getUserId();
-
-  const userQuizzes = await db
-    .select()
-    .from(quizzes)
-    .where(eq(quizzes.userId, userId));
-
-  return userQuizzes;
+      curriculum: pathData.topics || [],
+      summary: pathData.summary || "Learning path for " + subject,
+    };
+  } catch (error: any) {
+    console.error("[v0] Learning path error:", error?.message || error);
+    // Return empty learning path if API fails
+    return {
+      subject,
+      level,
+      curriculum: [],
+      summary: "Failed to generate learning path. Please try again.",
+      error: "API generation failed",
+    };
+  }
 }

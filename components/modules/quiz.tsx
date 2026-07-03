@@ -202,9 +202,9 @@ export default function QuizModule() {
                   </div>
 
                   {submitted && (
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                      <p className="text-sm text-blue-900">
-                        <strong>Explanation:</strong> {q.explanation}
+                    <div className="bg-white border-2 border-blue-300 border-l-4 border-l-blue-500 p-4 rounded">
+                      <p className="text-sm text-gray-900">
+                        <strong className="text-gray-900">Explanation:</strong> {q.explanation}
                       </p>
                     </div>
                   )}

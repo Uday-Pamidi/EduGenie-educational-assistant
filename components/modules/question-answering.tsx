@@ -102,8 +102,10 @@ export default function QuestionAnsweringModule() {
           {answer && (
             <div className="mt-8 space-y-4">
               <h2 className="text-xl font-bold text-gray-900">Answer</h2>
-              <div className="bg-gray-50 rounded-lg p-6 prose prose-sm max-w-none">
-                <Markdown>{answer}</Markdown>
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-6 prose prose-sm max-w-none">
+                <div className="text-gray-900">
+                  <Markdown>{answer}</Markdown>
+                </div>
               </div>
               <Button
                 onClick={() => setAnswer("")}

@@ -12,7 +12,23 @@ export default function Home() {
   useEffect(() => {
     const getSession = async () => {
       try {
-        const { data } = await authClient.getSession();
+        // Add retries to handle race conditions
+        let retries = 0;
+        let data = null;
+        
+        while (retries < 3) {
+          try {
+            const response = await authClient.getSession();
+            data = response.data;
+            if (data?.user) break;
+            retries++;
+            if (retries < 3) await new Promise(resolve => setTimeout(resolve, 200));
+          } catch {
+            retries++;
+            if (retries < 3) await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+        
         if (!data?.user) {
           router.push("/sign-in");
           return;

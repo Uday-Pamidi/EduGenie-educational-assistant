@@ -65,8 +65,8 @@
   --accent: #3b82f6;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: #e5e7eb;
-  --input: #f3f4f6;
+  --border: #d1d5db;
+  --input: #ffffff;
   --ring: #2563eb;
   --chart-1: #3b82f6;
   --chart-2: #8b5cf6;
@@ -165,6 +165,25 @@
   }
   html {
     @apply font-sans;
+  }
+  
+  /* Input field styling */
+  input,
+  textarea,
+  select {
+    @apply bg-white text-foreground border-2 border-gray-300 placeholder-gray-500;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply border-blue-500 ring-1 ring-blue-500/20;
+  }
+  
+  /* Placeholder text visibility */
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-600 opacity-100;
   }
 }
 

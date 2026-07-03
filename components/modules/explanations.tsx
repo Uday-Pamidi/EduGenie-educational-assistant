@@ -107,8 +107,10 @@ export default function ExplanationsModule() {
           {explanation && (
             <div className="mt-8 space-y-4">
               <h2 className="text-xl font-bold text-gray-900">Explanation</h2>
-              <div className="bg-yellow-50 rounded-lg p-6 prose prose-sm max-w-none border-l-4 border-yellow-500">
-                <Markdown>{explanation}</Markdown>
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-6 prose prose-sm max-w-none border-l-4 border-yellow-500">
+                <div className="text-gray-900">
+                  <Markdown>{explanation}</Markdown>
+                </div>
               </div>
               <Button
                 onClick={() => setExplanation("")}

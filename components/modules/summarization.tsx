@@ -110,8 +110,10 @@ export default function SummarizationModule() {
           {summary && (
             <div className="mt-8 space-y-4">
               <h2 className="text-xl font-bold text-gray-900">Summary</h2>
-              <div className="bg-green-50 rounded-lg p-6 prose prose-sm max-w-none border-l-4 border-green-500">
-                <Markdown>{summary}</Markdown>
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-6 prose prose-sm max-w-none border-l-4 border-green-500">
+                <div className="text-gray-900">
+                  <Markdown>{summary}</Markdown>
+                </div>
               </div>
               <Button
                 onClick={() => setSummary("")}

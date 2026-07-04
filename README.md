@@ -207,6 +207,8 @@ For issues and questions:
 - [ ] Study group features
 - [ ] Certificate generation
 
+> **Note:** Authentication pages are included in the source code using Better Auth, but authentication is currently disabled for development purposes. Users can directly access the application features and API's keys functions are currently disabled due to website is not recognising it.
+
 ## Built By
 
 Created with Next.js, Neon, Better Auth, and Google Gemini AI.
